@@ -2,11 +2,11 @@
 
 _Basic implementation of the SRT protocol in Go._
 
-[![Go](https://github.com/betandr/coresrt/actions/workflows/go.yml/badge.svg)](https://github.com/betandr/coresrt/actions/workflows/go.yml)
+[![Workflow Status](https://github.com/betandr/coresrt/actions/workflows/go.yml/badge.svg)](https://github.com/betandr/coresrt/actions/workflows/go.yml)
 
 ## Specification
 
-[Network Working Group - The SRT Protocol](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01)
+[Network Working Group - The SRT Protocol](docs/draft-sharabayko-srt-01.txt)
 
 ## Send SRT
 
