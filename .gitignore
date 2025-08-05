@@ -34,3 +34,6 @@ go.work.sum
 # assets
 *.mp4
 .DS_Store
+
+# project files
+coresrt

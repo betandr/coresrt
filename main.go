@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gosrt/receiver"
+	"coresrt/receiver"
 )
 
 func main() {
