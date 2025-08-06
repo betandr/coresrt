@@ -207,7 +207,7 @@ type PeerIPAddress struct {
 	IP4 uint32
 }
 
-type HandshakeControlPacket struct {
+type HandshakeControl struct {
 	Version                     uint32                 // base protocol version number
 	EncryptionField             CypherFamilyAndKeySize // Block cipher family and key size
 	ExtensionField              HandshakeExtensionFlag // sequence number of the very first data packet to be sent.

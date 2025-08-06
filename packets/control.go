@@ -63,25 +63,25 @@
 // Table 1: SRT control packet types
 package packets
 
-type PacketType uint16
+type ControlPacketType uint16
 
 const (
-	HANDSHAKE         PacketType = 0x0000
-	KEEPALIVE         PacketType = 0x0001
-	ACK               PacketType = 0x0002
-	NAK               PacketType = 0x0003 // Loss report
-	CongestionWarning PacketType = 0x0004
-	SHUTDOWN          PacketType = 0x0005
-	ACKACK            PacketType = 0x0006
-	DROPREQ           PacketType = 0x0007
-	PEERERROR         PacketType = 0x0008
-	UserDefinedType   PacketType = 0x7FFF
+	HANDSHAKE         ControlPacketType = 0x0000
+	KEEPALIVE         ControlPacketType = 0x0001
+	ACK               ControlPacketType = 0x0002
+	NAK               ControlPacketType = 0x0003 // Loss report
+	CongestionWarning ControlPacketType = 0x0004
+	SHUTDOWN          ControlPacketType = 0x0005
+	ACKACK            ControlPacketType = 0x0006
+	DROPREQ           ControlPacketType = 0x0007
+	PEERERROR         ControlPacketType = 0x0008
+	UserDefinedType   ControlPacketType = 0x7FFF // Reserved for a user-defined type
 )
 
-type ControlPacket struct {
-	ControlType             PacketType // 15 bits for control type
-	Subtype                 PacketType // 16 bits for subtype
-	TypeSpecificInfo        uint32     // 32 bits for type-specific information
+type Control struct {
+	ControlType             ControlPacketType // 15 bits for control type
+	Subtype                 ControlPacketType // 16 bits for subtype
+	TypeSpecificInfo        uint32            // 32 bits for type-specific information
 	Timestamp               uint32
 	DestinationSocketID     uint32
 	ControlInformationField []byte // Control Information Field

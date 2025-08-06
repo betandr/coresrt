@@ -56,7 +56,7 @@
 //	of the data is the remaining length of the UDP packet.
 package packets
 
-type DataPacket struct {
+type Data struct {
 	PacketSequenceNumber    uint32
 	PacketPositionFlag      byte   // 2 bits
 	OrderFlag               byte   // 1 bit
