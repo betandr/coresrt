@@ -1,0 +1,36 @@
+@startuml
+title SRT Handshake and Reliable Data Flow
+
+actor Sender
+actor Receiver
+
+Sender -> Receiver: HANDSHAKE (INDUCTION)
+Note right of Sender: Sends initial SYN cookie
+Receiver --> Sender: HANDSHAKE (response)
+Note left of Receiver: Validates cookie, responds
+Sender -> Receiver: HANDSHAKE (confirmation)
+Note right of Sender: Completes handshake
+
+loop while data streaming
+    Sender -> Receiver: DATA (seq N)
+    Sender -> Receiver: DATA (seq N+1)
+    Receiver --> Sender: ACK
+end
+
+alt packet loss or out-of-order delivery
+    Receiver -> Sender: NAK
+    Sender -> Receiver: DATA (retransmission)
+end
+
+Receiver --> Sender: ACKACK
+Receiver -> Sender: KEEPALIVE
+Sender -> Receiver: KEEPALIVE
+
+Note over Sender, Receiver
+    Optional control traffic:
+    CONGESTION WARNING, DROPREQ, PEERERROR
+end note
+
+Sender -> Receiver: SHUTDOWN
+Receiver --> Sender: SHUTDOWN
+@enduml

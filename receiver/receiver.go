@@ -10,7 +10,9 @@ import (
 	"time"
 )
 
-type Options struct{}
+type Options struct {
+	Debug bool // run in debug mode
+}
 
 type Receiver struct {
 	conn        *net.UDPConn
@@ -72,7 +74,9 @@ func Start(port int, ipAddr string, opts Options) {
 		pktData := make([]byte, n)
 		copy(pktData, buf[:n])
 
-		dumpPacket("SRT packet from "+remoteAddr.String(), pktData)
+		if opts.Debug {
+			dumpPacket("SRT packet from "+remoteAddr.String(), pktData)
+		}
 
 		// pkt, err := packets.ParsePacket(pktData)
 		// if err != nil {
