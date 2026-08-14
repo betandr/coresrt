@@ -1,8 +1,11 @@
 package receiver
 
 import (
+	"encoding/binary"
+	"fmt"
 	"log"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -69,8 +72,7 @@ func Start(port int, ipAddr string, opts Options) {
 		pktData := make([]byte, n)
 		copy(pktData, buf[:n])
 
-		log.Println("received packet from", remoteAddr.String(), "size:", n)
-		log.Printf("first 32 bytes: % x", pktData[:min(32, len(pktData))])
+		dumpPacket("SRT packet from "+remoteAddr.String(), pktData)
 
 		// pkt, err := packets.ParsePacket(pktData)
 		// if err != nil {
@@ -85,4 +87,86 @@ func Start(port int, ipAddr string, opts Options) {
 		// 	go r.handleControlPacket(p, remoteAddr)
 		// }
 	}
+}
+
+func dumpPacket(label string, pktData []byte) {
+	if len(pktData) == 0 {
+		log.Printf("%s: empty packet", label)
+		return
+	}
+
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("%s (%d bytes):\n", label, len(pktData)))
+	b.WriteString(packetGroups(pktData))
+	b.WriteString("\n")
+
+	for i := 0; i < len(pktData); i += 16 {
+		end := i + 16
+		if end > len(pktData) {
+			end = len(pktData)
+		}
+
+		chunk := pktData[i:end]
+		b.WriteString(fmt.Sprintf("%04x: ", i))
+
+		for _, v := range chunk {
+			b.WriteString(fmt.Sprintf("%02x ", v))
+		}
+		for len(chunk) < 16 {
+			b.WriteString("   ")
+			chunk = nil
+		}
+		b.WriteString("  ")
+
+		for _, v := range pktData[i:end] {
+			if v >= 32 && v < 127 {
+				b.WriteByte(byte(v))
+			} else {
+				b.WriteByte('.')
+			}
+		}
+		b.WriteString("\n")
+	}
+
+	log.Print(b.String())
+}
+
+func packetGroups(pktData []byte) string {
+	if len(pktData) < 16 {
+		return "packet too short for SRT header\n"
+	}
+
+	var b strings.Builder
+	b.WriteString("header groups:\n")
+
+	first := pktData[0]
+	if first&0x80 != 0 {
+		ctlFlag := (first >> 7) & 0x01
+		ctlType := uint16(first&0x7F)<<8 | uint16(pktData[1])
+		subType := uint16(pktData[2])<<8 | uint16(pktData[3])
+		typeSpecific := binary.BigEndian.Uint32(pktData[4:8])
+		timestamp := binary.BigEndian.Uint32(pktData[8:12])
+		destSocket := binary.BigEndian.Uint32(pktData[12:16])
+
+		b.WriteString(fmt.Sprintf("  control flag: %d\n", ctlFlag))
+		b.WriteString(fmt.Sprintf("  control type: %015b (%04x)\n", ctlType, ctlType))
+		b.WriteString(fmt.Sprintf("  subtype: %016b (%04x)\n", subType, subType))
+		b.WriteString(fmt.Sprintf("  type-specific info: %032b (%08x)\n", typeSpecific, typeSpecific))
+		b.WriteString(fmt.Sprintf("  timestamp: %032b (%08x)\n", timestamp, timestamp))
+		b.WriteString(fmt.Sprintf("  destination socket id: %032b (%08x)\n", destSocket, destSocket))
+	} else {
+		seqNum := binary.BigEndian.Uint32([]byte{pktData[0] & 0x7F, pktData[1], pktData[2], pktData[3]})
+		msgFlags := pktData[4]
+		msgNum := uint32(pktData[4]&0x3F)<<18 | uint32(pktData[5])<<10 | uint32(pktData[6])<<2 | uint32(pktData[7]>>6)
+		timestamp := binary.BigEndian.Uint32(pktData[8:12])
+		destSocket := binary.BigEndian.Uint32(pktData[12:16])
+
+		b.WriteString(fmt.Sprintf("  packet seq num: %031b (%08x)\n", seqNum, seqNum))
+		b.WriteString(fmt.Sprintf("  flags: %08b\n", msgFlags))
+		b.WriteString(fmt.Sprintf("  message num: %026b (%08x)\n", msgNum, msgNum))
+		b.WriteString(fmt.Sprintf("  timestamp: %032b (%08x)\n", timestamp, timestamp))
+		b.WriteString(fmt.Sprintf("  destination socket id: %032b (%08x)\n", destSocket, destSocket))
+	}
+
+	return b.String()
 }
